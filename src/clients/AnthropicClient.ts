@@ -1,6 +1,6 @@
 const { ChatAnthropic } = require('@langchain/anthropic');
 
-const apiKey = "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";
+const apiKey = process.env.ANTHROPIC_API_KEY;
 
 export const AnthropicClient = new ChatAnthropic({
     apiKey: apiKey,
