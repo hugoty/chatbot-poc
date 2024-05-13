@@ -9,7 +9,7 @@ const { OpenAIEmbeddings } = require('@langchain/openai')
 export const client = (weaviate as any).client({
   scheme: process.env.WEAVIATE_SCHEME || 'https',
   host: process.env.WEAVIATE_HOST || 'chatbot-6cesrgea.grpc.weaviate.network',
-  apiKey:new ApiKey(process.env.WEAVIATE_API_KEY || "tf73pa538wCVm2l8HHPmDiHmNK4e3Aqhxq2O")
+  apiKey:new ApiKey(process.env.WEAVIATE_API_KEY )
 });
  async function insertText(text : string) {
   // Connexion au client Weaviate
