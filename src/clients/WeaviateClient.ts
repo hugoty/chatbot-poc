@@ -2,6 +2,12 @@
 const {ApiKey} = require('weaviate-ts-client');
 const {default: weaviate}  = require('weaviate-ts-client');
 const { OpenAIEmbeddings } = require('@langchain/openai')
+import dotenv from 'dotenv';
+
+
+
+
+dotenv.config();
 
 
 

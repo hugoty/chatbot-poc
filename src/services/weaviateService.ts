@@ -5,6 +5,12 @@ import {RecursiveCharacterTextSplitter} from 'langchain/text_splitter'
 const {ApiKey} = require('weaviate-ts-client');
 const {default: weaviate}  = require('weaviate-ts-client');
 const { OpenAIEmbeddings } = require('@langchain/openai')
+import dotenv from 'dotenv';
+
+
+
+
+dotenv.config();
 
 export const client = (weaviate as any).client({
   scheme: process.env.WEAVIATE_SCHEME || 'https',
