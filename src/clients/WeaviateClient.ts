@@ -16,7 +16,7 @@ export const client = (weaviate as any).client({
   }
 
 export const embedding =  new OpenAIEmbeddings({
-  apiKey: "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",
+  apiKey: process.env.OPENAI_API_KEY,
   batchSize: 512,  // As per your setup, adjust if needed
   model: "text-embedding-3-large",
 })
