@@ -1,5 +1,5 @@
 import { WeaviateStore } from "@langchain/weaviate";
-import { getClient, embedding, client } from "../clients/WeaviateClient";
+import { getClient, embedding, client } from "../clients/weaviateClient";
 import { CheerioWebBaseLoader } from "langchain/document_loaders/web/cheerio";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { CustomTextSplitter } from "../utils/splitter/splitter";
@@ -9,7 +9,7 @@ import { PDFLoader } from "langchain/document_loaders/fs/pdf";
 
 dotenv.config();
 
-async function insertText(text: string) {
+async function insertTextToDB(text: string) {
   const client = await getClient();
 
   // Connexion au client Weaviate
@@ -30,7 +30,7 @@ async function insertText(text: string) {
   console.log("Texte inséré avec succès dans Weaviate.");
 }
 
-async function searchText(text: string) {
+async function searchInDB(text: string) {
   const client = await getClient();
 
   // Initialize the WeaviateStore with the existing index
@@ -43,7 +43,7 @@ async function searchText(text: string) {
 
   // Perform a similarity search in the Weaviate index
   try {
-    const results = await store.similaritySearch(text, 200); // Adjust the number of results as needed
+    const results = await store.similaritySearch(text, 50); // Adjust the number of results as needed
     console.log("Search Results:", results);
     return results;
   } catch (error) {
@@ -52,7 +52,7 @@ async function searchText(text: string) {
   }
 }
 
-async function insertTextFromURL(url: string) {
+async function insertTextFromURLToDB(url: string) {
   const client = await getClient();
 
   const loader = new CheerioWebBaseLoader(url);
@@ -80,7 +80,8 @@ async function insertTextFromURL(url: string) {
   console.log("store ok");
   await store.addDocuments(splitDocs);
 }
-async function processAndInsertPDF(pdfPath: string) {
+
+async function processAndInsertPDFToDB(pdfPath: string) {
   const client = await getClient();
   try {
     // Charger et analyser le PDF
@@ -120,7 +121,7 @@ async function processAndInsertPDF(pdfPath: string) {
   }
 }
 
-async function cleanDB() {
+async function clearDB() {
   const client = await getClient();
 
   const store = await WeaviateStore.fromExistingIndex(embedding, {
@@ -141,11 +142,11 @@ async function cleanDB() {
 }
 
 export {
-  searchText,
-  processAndInsertPDF,
-  insertText,
-  insertTextFromURL,
-  cleanDB,
+  searchInDB,
+  processAndInsertPDFToDB,
+  insertTextToDB,
+  insertTextFromURLToDB,
+  clearDB,
 };
 
 // export async function insertText(text: string) {

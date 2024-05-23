@@ -1,5 +1,5 @@
 import express from 'express';
-import router from './api/index';  // Make sure this path is correctly resolved
+import {router} from './api/index';  // Make sure this path is correctly resolved
 import cors from 'cors';
 import dotenv from 'dotenv';
 

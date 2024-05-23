@@ -1,8 +1,8 @@
-// anthropicController.ts
+// aiController.ts
 import { Request, Response } from 'express';
-import { AnthropicsService } from '../services/anthropicService';
+import { AIService } from '../services/aiService';
 
-const anthropicsService = new AnthropicsService();
+const aiService = new AIService();
 
 export async function handleQuestion(req: Request, res: Response): Promise<void> {
     try {
@@ -11,15 +11,14 @@ export async function handleQuestion(req: Request, res: Response): Promise<void>
             res.status(400).send({ error: 'No question provided' });
             return;
         }
-        console.log("question :"+ question )
-        const answer = await anthropicsService.invokeModel(question);
-        console.log("ansewers : " + answer)
+        console.log("question :" + question);
+        const answer = await aiService.invokeModel(question);
+        console.log("answers : " + answer);
         res.status(200).send({ question, answer });
     } catch (error) {
         res.status(500).send({ error: 'Failed to get an answer' });
     }
 }
-
 
 export async function handleQuestionWithContext(req: Request, res: Response): Promise<void> {
     try {
@@ -29,8 +28,8 @@ export async function handleQuestionWithContext(req: Request, res: Response): Pr
             return;
         }
 
-        const answer = await anthropicsService.askWithContext(question);
-        res.status(200).send({  answer });
+        const answer = await aiService.askWithContext(question);
+        res.status(200).send({ answer });
     } catch (error) {
         res.status(500).send({ error: 'Failed to get an answer' });
     }
