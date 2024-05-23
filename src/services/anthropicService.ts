@@ -1,60 +1,64 @@
 import { AnthropicClient } from "../clients/AnthropicClient";
-import {ChatPromptTemplate} from '@langchain/core/prompts'
-import {searchText} from "./weaviateService"
-import {StringOutputParser} from "@langchain/core/output_parsers"
-
-
+import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { searchText } from "./weaviateService";
+import { StringOutputParser } from "@langchain/core/output_parsers";
 
 export class AnthropicsService {
-
-    async invokeModel(question: string): Promise<any> {
-        const prompt = ChatPromptTemplate.fromTemplate(`
+  async invokeModel(question: string): Promise<any> {
+    const prompt = ChatPromptTemplate.fromTemplate(`
         Answer the user's question based on the context. If the response isn't in the context, respond that you dont know
         Question :  {input}
         Context : Les petits pois sont orange lorsqu'il fait très chaud , à partir de 25 degré celsius sinon, sinon, ils sont bleu
-        `)
+        `);
 
-        try {
-            const chain = prompt.pipe(AnthropicClient);
+    try {
+      console.log("go");
+      const chain = prompt.pipe(AnthropicClient);
 
-            const response = chain.invoke({
-                input: question
-            })
-            return response;
-        } catch (error) {
-            console.error('Error invoking Anthropics model:', error);
-            throw error;
-        }
+      const response = await chain.invoke({
+        input: question,
+      });
+
+      return response;
+    } catch (error) {
+      console.error("Error invoking Anthropics model:", error);
+      throw error;
     }
+  }
 
+  async askWithContext(question: string): Promise<any> {
+    const prompt = ChatPromptTemplate.fromTemplate(`
+        Instruction Importantes :  N'utilise pas le mot contexte dans ta réponse. Tu es un chatbot d'entreprise. Réponds à la question de l'utilisateur en te basant seulement sur le contexte fourni.
 
-    async askWithContext(question: string): Promise<any> {
-        const prompt = ChatPromptTemplate.fromTemplate(`
-        Tu es un chatbot d'entreprise. Réponds à la question de l'utilisateur en te basant seulement sur le contexte fournit. Ne parle pas du contexte si la réponse ne s'y trouve pas. Si la réponse n'est pas dans le contexte réponds que tu ne sait pas.
-        Question :  {input}
-        Context : {context}
-        `)
+        Contexte : {context}
 
-        const parser = new StringOutputParser()
+        Question : {input}
 
-        try {
-            const chain = prompt.pipe(AnthropicClient).pipe(parser);
+        Réponse :
+        `);
 
-            const context = await searchText(question)
+    const parser = new StringOutputParser();
 
-            // restructurer le context après la recherche
-            const concatenatedContext = context.reduce((acc: any, document: { pageContent: string; }) => acc + document.pageContent + " ", "");
+    try {
+      const chain = prompt.pipe(AnthropicClient).pipe(parser);
 
+      const context = await searchText(question);
 
-            const response = chain.invoke({
-                input: question,
-                context: concatenatedContext
+      // restructurer le context après la recherche
+      const concatenatedContext = context.reduce(
+        (acc: any, document: { pageContent: string }) =>
+          acc + document.pageContent + " ",
+        ""
+      );
 
-            })
-            return response;
-        } catch (error) {
-            console.error('Error invoking Anthropics model:', error);
-            throw error;
-        }
+      const response = chain.invoke({
+        input: question,
+        context: concatenatedContext,
+      });
+      return response;
+    } catch (error) {
+      console.error("Error invoking Anthropics model:", error);
+      throw error;
     }
+  }
 }

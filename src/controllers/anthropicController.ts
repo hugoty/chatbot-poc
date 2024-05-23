@@ -11,8 +11,9 @@ export async function handleQuestion(req: Request, res: Response): Promise<void>
             res.status(400).send({ error: 'No question provided' });
             return;
         }
-
+        console.log("question :"+ question )
         const answer = await anthropicsService.invokeModel(question);
+        console.log("ansewers : " + answer)
         res.status(200).send({ question, answer });
     } catch (error) {
         res.status(500).send({ error: 'Failed to get an answer' });
@@ -29,7 +30,7 @@ export async function handleQuestionWithContext(req: Request, res: Response): Pr
         }
 
         const answer = await anthropicsService.askWithContext(question);
-        res.status(200).send({ question, answer });
+        res.status(200).send({  answer });
     } catch (error) {
         res.status(500).send({ error: 'Failed to get an answer' });
     }

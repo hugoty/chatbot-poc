@@ -13,7 +13,7 @@ dotenv.config();
 
 export const client = (weaviate as any).client({
     scheme: process.env.WEAVIATE_SCHEME || 'https',
-    host: process.env.WEAVIATE_HOST || 'chatbot-6cesrgea.grpc.weaviate.network',
+    host: process.env.WEAVIATE_HOST || process.env.DB_URL,
     apiKey:new ApiKey(process.env.WEAVIATE_API_KEY)
   });
 
