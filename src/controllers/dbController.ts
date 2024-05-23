@@ -1,13 +1,9 @@
-// weaviateController.ts
 import { Request, Response } from 'express';
-import { insertText,processAndInsertPDF, searchText, insertTextFromURL, cleanDB } from '../services/weaviateService'; // Include searchText here
+import { insertTextToDB, processAndInsertPDFToDB, searchInDB, insertTextFromURLToDB, clearDB } from '../services/dbService';
 import fs from 'fs';
 import path from 'path';
 import { tmpdir } from 'os';
 import { Express } from 'express';
-
-
-
 
 export async function handleInsertText(req: Request, res: Response): Promise<void> {
     try {
@@ -17,15 +13,16 @@ export async function handleInsertText(req: Request, res: Response): Promise<voi
             return;
         }
 
-        // Wait for insertText to complete and catch any errors it throws.
-        await insertText(text);
+        // Wait for insertTextToDB to complete and catch any errors it throws.
+        await insertTextToDB(text);
         res.status(200).send({ message: 'Text successfully inserted into Weaviate' });
     } catch (error) {
         console.error('Failed to insert text:', error);
-        // Send a 500 status code if an error is thrown by insertText.
+        // Send a 500 status code if an error is thrown by insertTextToDB.
         res.status(500).send({ error: 'Failed to insert text' });
     }
 }
+
 export async function handleSearchText(req: Request, res: Response): Promise<void> {
     try {
         const query = req.body.text as string; // Using query to get the text parameter
@@ -34,7 +31,7 @@ export async function handleSearchText(req: Request, res: Response): Promise<voi
             return;
         }
 
-        const results = await searchText(query);
+        const results = await searchInDB(query);
         res.status(200).send({ results }); // Sending back the search results
     } catch (error) {
         console.error('Failed to search text:', error);
@@ -42,65 +39,56 @@ export async function handleSearchText(req: Request, res: Response): Promise<voi
     }
 }
 
-
 export async function handleInsertTextFromURL(req: Request, res: Response): Promise<void> {
     try {
         const url = req.body.url;
         if (!url) {
-            res.status(400).send({ error: 'No url provided' });
+            res.status(400).send({ error: 'No URL provided' });
             return;
         }
 
-        await insertTextFromURL(url);
-        res.status(200).send({ message: 'Text from url successfully inserted into Weaviate' });
+        await insertTextFromURLToDB(url);
+        res.status(200).send({ message: 'Text from URL successfully inserted into Weaviate' });
     } catch (error) {
-        console.error('Failed to insert text from url:', error);
-        res.status(500).send({ error: 'Failed to insert text from url' });
+        console.error('Failed to insert text from URL:', error);
+        res.status(500).send({ error: 'Failed to insert text from URL' });
     }
 }
 
-
-export async function handleCleanDB(req: Request, res: Response): Promise<void> {
+export async function handleClearDB(req: Request, res: Response): Promise<void> {
     try {
-        
-        await cleanDB();
-        res.status(200).send({ message: 'db cleanned successfully' });
+        await clearDB();
+        res.status(200).send({ message: 'Database cleaned successfully' });
     } catch (error) {
-        console.error('Failed to clean db:', error);
-        res.status(500).send({ error: 'Failed to clean db' });
+        console.error('Failed to clean database:', error);
+        res.status(500).send({ error: 'Failed to clean database' });
     }
 }
-
-
 
 interface MulterRequest extends Request {
     file: Express.Multer.File;
 }
+
 export async function handleInsertTextFromPDF(req: Request, res: Response): Promise<void> {
     try {
         // Cast req to MulterRequest to access the file property
+        const multerReq = req as MulterRequest;
 
-        const multerReq= req as MulterRequest;
-
-        if (!multerReq) {
+        if (!multerReq.file) {
             res.status(400).send('No file uploaded.');
             return;
         }
 
         const file = multerReq.file;
-
-        console.log("file :" + file )
-
         const tempPath = path.join(tmpdir(), file.originalname);
         fs.writeFileSync(tempPath, file.buffer);
 
-        await processAndInsertPDF(tempPath);
-
+        await processAndInsertPDFToDB(tempPath);
         fs.unlinkSync(tempPath);
 
         res.status(200).send('PDF processed and inserted successfully into Weaviate.');
     } catch (error) {
-        console.error("Error processing and inserting PDF:", error);
+        console.error('Error processing and inserting PDF:', error);
         res.status(500).send('Error processing the PDF.');
     }
 }
