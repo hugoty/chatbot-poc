@@ -3,7 +3,7 @@ import { AIService } from '../services/aiService';
 import { JiraService } from '../services/jiraService';
 import axios from 'axios';
  
-export async function handlegetJiraProjects(req: Request, res: Response): Promise<void> {
+export async function handleGetJiraProjects(req: Request, res: Response): Promise<void> {
     const { jiraUrl, email, apiToken } = req.body;
  
     if (!jiraUrl || !email || !apiToken) {
@@ -31,8 +31,40 @@ export async function handlegetJiraProjects(req: Request, res: Response): Promis
         res.status(500).send({ error: 'Failed to fetch Jira projects' });
     }
 }
+export async function handleListJiraEpics(req: Request, res: Response): Promise<void> {
+    const { jiraUrl, email, apiToken, projectKey } = req.body;
  
-export async function handlelistJiraTickets(req: Request, res: Response): Promise<void> {
+    if (!jiraUrl || !email || !apiToken || !projectKey) {
+        res.status(400).send({ error: 'Missing required parameters' });
+        return;
+    }
+ 
+    const auth = Buffer.from(`${email}:${apiToken}`).toString('base64');
+ 
+    try {
+        const response = await axios.get(
+            `${jiraUrl}/rest/api/3/search`,
+            {
+                params: {
+                    jql: `issuetype="Epic"`
+                },
+                headers: {
+                    'Authorization': `Basic ${auth}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+ 
+        const tickets = response.data.issues;
+        res.status(200).send({ tickets });
+    } catch (error) {
+        console.error('Error fetching Jira tickets:', error);
+        res.status(500).send({ error: 'Failed to fetch tickets' });
+    }
+}
+
+
+export async function handleListJiraTickets(req: Request, res: Response): Promise<void> {
     const { jiraUrl, email, apiToken, projectKey } = req.body;
  
     if (!jiraUrl || !email || !apiToken || !projectKey) {
@@ -65,7 +97,7 @@ export async function handlelistJiraTickets(req: Request, res: Response): Promis
 }
  
  
-export async function handlecreateJiraIssue(req: Request, res: Response): Promise<void> {
+export async function handleCreateJiraIssue(req: Request, res: Response): Promise<void> {
     const { jiraUrl, email, apiToken, projectKey, input } = req.body;
  
     if (!jiraUrl || !email || !apiToken || !projectKey || !input) {

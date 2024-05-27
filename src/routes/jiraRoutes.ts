@@ -1,12 +1,12 @@
 // jiraRoutes.ts
 import express from 'express';
-import {handleCreateJiraIssue ,handleListJiraTickets, handlegetJiraProjects, handleListJiraEpics } from '../controllers/jiraController';
+import {handleCreateJiraIssue ,handleListJiraTickets, handleGetJiraProjects, handleListJiraEpics } from '../controllers/jiraController';
 
 const jiraRouter = express.Router();
 
 // Route to create a new Jira issue
 
-jiraRouter.post('/GetJiraProjects',handlegetJiraProjects);
+jiraRouter.post('/GetJiraProjects',handleGetJiraProjects);
 jiraRouter.get('/ListTickets',handleListJiraTickets);
 jiraRouter.get('/ListEpics',handleListJiraEpics);
 jiraRouter.post('/CreateJiraTicket', handleCreateJiraIssue);
