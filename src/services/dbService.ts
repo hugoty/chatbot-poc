@@ -1,5 +1,5 @@
 import { WeaviateStore } from "@langchain/weaviate";
-import { getClient, embedding, client } from "../clients/WeaviateClient";
+import { getClient, embedding, client } from "../clients/weaviateClient";
 import { CheerioWebBaseLoader } from "langchain/document_loaders/web/cheerio";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { CustomTextSplitter } from "../utils/splitter/splitter";
