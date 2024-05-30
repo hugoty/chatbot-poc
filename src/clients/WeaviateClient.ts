@@ -26,3 +26,5 @@ export const embedding =  new OpenAIEmbeddings({
   batchSize: 512,  // As per your setup, adjust if needed
   model: "text-embedding-3-large",
 })
+
+
