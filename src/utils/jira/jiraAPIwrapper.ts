@@ -275,8 +275,10 @@ export class JiraAPIWrapper {
       const error = await resp.text();
       return `Received ${error}. Make sure the correct tool is being used and try again.`;
     }
-
-    return await resp.text();
+    else {
+        return "ticket successfully created"
+    }
+    
   }
 
   /**

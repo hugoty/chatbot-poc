@@ -1,5 +1,5 @@
 export const JIRA_ISSUE_CREATE_PROMPT = `
-This tool is a wrapper around the Jira API, useful when you need to create a Jira issue. 
+This tool is a wrapper around the Jira API, useful when you need to create a Jira issue. When the ticket is created you'll recive something like : ""{"id":"10089","key":"KAN-69","self":"https://chatbottest.atlassian.net/rest/api/3/issue/10089"}""
 The input to this tool is a object specifying the fields of the Jira issue, and will be passed into the Jira \`createIssue\` function.
 For example, to create a low priority task called "test issue" with description "test description" in project PW, you would pass in the following json object: 
 {{"summary": "test issue", "description": "test description", "project": "PW", "issuetype": "Task", "priority": "Low"}}

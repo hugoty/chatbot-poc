@@ -44,13 +44,7 @@ export class JiraToolkit extends Toolkit {
         description: JIRA_ISSUE_CREATE_PROMPT,
         mode: "create_issue",
         apiWrapper: this.apiWrapper,
-      }),
-      new JiraAction({
-        name: "Questioncontext",
-        description:  QUESTION_WITH_CONTEXT_PROMPT,
-        mode: "context",
-        apiWrapper: this.apiWrapper,
-      }),
+      })
     ];
   }
 }
