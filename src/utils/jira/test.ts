@@ -3,10 +3,10 @@ import { ChatOpenAI } from '@langchain/openai';
 import { JiraToolkit } from "./jira/index";
 import { JiraAPIWrapper } from "./jiraAPIwrapper";
 import dotenv from 'dotenv';
-import { ChatAnthropic } from '@langchain/anthropic';
+import { ChatAnthropic} from '@langchain/anthropic';
 import { AgentExecutor, createToolCallingAgent } from "langchain/agents";
 import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
-import { HumanMessage, AIMessage, BaseMessage } from "@langchain/core/messages"
+import { HumanMessage, AIMessage, BaseMessage, AIMessageChunk, HumanMessageChunk } from "@langchain/core/messages"
 import { createRetrieverTool } from "langchain/tools/retriever";
 import { getClient, embedding } from '../../clients/weaviateClient';
 import { WeaviateStore } from "@langchain/weaviate";
@@ -37,10 +37,10 @@ export const run = async () => {
 
     const prompt = ChatPromptTemplate.fromMessages(
       [
-        ["system", "Utilise les outils pour répondre à la demande de l'utilisateur puis arrête toi. Si la question ne concerne pas l'intelligence artificielle, réponds que tu n'est pas fait pour ça "],
+        ["system", `Choisi l'outil le plus adapté parmis les outils à ta disposition. Restitue la réponse des outils à l'utilisateur. Si l'action te renvoie un message positif, alors retourn une réponse pour décrire le succès de l'action commençant par Final Answer :`],
         ["human", "{input}"],
+        new MessagesPlaceholder("chat_history"),
         ["placeholder", "{agent_scratchpad}"],
-        ["placeholder", "{chat_history}"],
       ]
     );
 
@@ -49,8 +49,13 @@ export const run = async () => {
       model: 'claude-3-sonnet-20240229',
       maxTokens: 4096,
       temperature: -1,
+      
     });
 
+    const modelForFunctionCalling = new ChatOpenAI({
+      model: "gpt-4",
+      temperature: 0,
+    });
     const jira = new JiraAPIWrapper({
       host: "https://chatbottest.atlassian.net",
       email: "ameni.lefi@esprit.tn",
@@ -68,7 +73,7 @@ export const run = async () => {
     toolss.map(e => tools.push(e));
 
     const agent = createToolCallingAgent({ llm, tools, prompt });
-    const agentExecutor = new AgentExecutor({ agent, tools, verbose: true });
+    const agentExecutor = new AgentExecutor({ agent, tools, verbose: true , maxIterations: 10 ,});
 
     console.log("Agent chargé");
 
@@ -85,27 +90,26 @@ export const run = async () => {
           rl.close();
           return;
         }
-
+    
         try {
           console.log(`Exécution avec l'input "${input}"...`);
           
-          // Ajouter le message de l'utilisateur à l'historique
-          
-
+          // Add user input to history
+          chatHistory.push(new HumanMessage(input));
+    
           const result = await agentExecutor.invoke({
             input,
             chat_history: chatHistory,
           });
-          // Ajouter la réponse de l'agent à l'historique 
-
+    
+          // Add agent response to history
           chatHistory.push(new AIMessage(result.output));
-          chatHistory.push(new HumanMessage(input));
-
+    
           console.log(`Résultat obtenu: ${result.output}`);
         } catch (error) {
           console.error("Erreur rencontrée :", error);
         }
-
+    
         askQuestion();
       });
     };

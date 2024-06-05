@@ -1,4 +1,6 @@
 import { Tool } from "@langchain/core/tools";
+import { AgentFinish } from "langchain/agents";
+
 import {
   AsyncCaller,
   AsyncCallerParams,
@@ -276,9 +278,9 @@ export class JiraAPIWrapper {
       return `Received ${error}. Make sure the correct tool is being used and try again.`;
     }
     else {
-        return "ticket successfully created"
+          return await "Le ticket a été créé avec succès, l'agent peut s'arreter."
+
     }
-    
   }
 
   /**
@@ -339,14 +341,12 @@ export class JiraAPIWrapper {
         return await this.getProjects();
       case "create_issue":
         return await this.createIssue(query);
-      // case "other":
-      //   return await this.other(query);s
-      case "context":
-          return await this.callContext(query)
       default:
         throw new Error(`Invalid mode: ${mode}`);
     }
   }
+
+
   async callContext(query: string): Promise<string> {
     const {answer, question} = JSON.parse(query);
 
@@ -393,12 +393,11 @@ export class JiraAction extends Tool implements JiraActionConfig {
     return {
       type: "select",
       name: "mode",
-      message: "What action would you like to perform? if the action \"Ask with context\" cant answer then stop here",
+      message: "What action would you like to perform on JIRA?",
       choices: [
         { name: "JQL Query", value: "jql" },
         { name: "Get Projects", value: "get_projects" },
         { name: "Create Issue", value: "create_issue" },
-        { name: "Ask with context", value: "context" },
       ],
     };
   }
