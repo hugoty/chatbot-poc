@@ -1,7 +1,7 @@
 // insrtText.ts
-const {ApiKey} = require('weaviate-ts-client');
-const {default: weaviate}  = require('weaviate-ts-client');
-const { OpenAIEmbeddings } = require('@langchain/openai')
+import { ApiKey } from 'weaviate-ts-client';
+import { default as weaviate } from 'weaviate-ts-client';
+import { OpenAIEmbeddings } from '@langchain/openai';
 import dotenv from 'dotenv';
 
 
@@ -14,7 +14,7 @@ dotenv.config();
 export const client = (weaviate as any).client({
     scheme: process.env.WEAVIATE_SCHEME || 'https',
     host: process.env.WEAVIATE_HOST || process.env.DB_URL,
-    apiKey:new ApiKey(process.env.WEAVIATE_API_KEY)
+    apiKey:new ApiKey(process.env.WEAVIATE_API_KEY ||"ghylkjhgv")
   });
 
   export async function getClient(): Promise<any> {

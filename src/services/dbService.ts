@@ -6,6 +6,7 @@ import { CustomTextSplitter } from "../utils/splitter/splitter";
 import dotenv from "dotenv";
 import { TokenTextSplitter } from "@langchain/textsplitters";
 import { PDFLoader } from "langchain/document_loaders/fs/pdf";
+import { CustomPDFLoader } from "../utils/loader/CustomPdfLoader";
 
 dotenv.config();
 
@@ -85,8 +86,9 @@ async function processAndInsertPDFToDB(pdfPath: string) {
   const client = await getClient();
   try {
     // Charger et analyser le PDF
+    const loader2 = new CustomPDFLoader()
     const loader = new PDFLoader(pdfPath, { splitPages: false });
-    const docs = await loader.load();
+    const docs = await loader2.loadFromFile(pdfPath);
 
     // Nettoyer les documents pour n'inclure que le champ source dans les métadonnées
     const cleanedDocs = docs.map((doc: any) => ({
