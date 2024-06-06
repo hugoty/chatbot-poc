@@ -31,7 +31,7 @@ class AgentService {
     const retriever = store.asRetriever(100);
     const retrieverTool = createRetrieverTool(retriever, {
       name: "ai_search",
-      description: "Search for information about AI. For any questions about AI, you must use this tool!",
+      description: "Search for information about AI. For any questions about AI, you must use this tool! Retourn only the result",
     });
 
     const prompt = ChatPromptTemplate.fromMessages([

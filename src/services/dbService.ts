@@ -6,81 +6,8 @@ import { CustomTextSplitter } from "../utils/splitter/splitter";
 import dotenv from "dotenv";
 import { TokenTextSplitter } from "@langchain/textsplitters";
 import { PDFLoader } from "langchain/document_loaders/fs/pdf";
-import pdf from 'pdf-parse';
-import * as Tesseract from 'tesseract.js';
-import * as pdf2img from 'pdf-img-convert';
-
-
-
 
 dotenv.config();
-
-
-async function processAndInsertPDFToDB(pdfPath: string) {
-  const client = await getClient();
-  try {
-    const pdfData = fs.readFileSync(pdfPath);
-    const pdfDoc = await PDFDocument.load(pdfData);
-    const numPages = pdfDoc.getPageCount();
-
-    const ocrPromises = [];
-    for (let i = 0; i < numPages; i++) {
-      const page = pdfDoc.getPage(i);
-      const { width, height } = page.getSize();
-      const pageImage = await page.renderToImage({ width, height });
-
-      // Convert page image to canvas
-      const canvas = createCanvas(width, height);
-      const ctx = canvas.getContext('2d');
-      const img = await loadImage(pageImage);
-      ctx.drawImage(img, 0, 0);
-
-      // Convert canvas to buffer
-      const imageBuffer = canvas.toBuffer('image/png');
-
-      // Perform OCR on the image
-      const ocrPromise = Tesseract.recognize(imageBuffer, 'eng')
-        .then(result => ({
-          pageContent: result.data.text,
-          metadata: {
-            source: `page-${i + 1}`,
-          },
-        }))
-        .catch(error => {
-          console.error(`Error processing page ${i + 1}:`, error);
-          throw error;
-        });
-
-      ocrPromises.push(ocrPromise);
-    }
-
-    const docs = await Promise.all(ocrPromises);
-
-    // Diviser les documents en morceaux
-    const splitter = new RecursiveCharacterTextSplitter({
-      chunkSize: 300,
-      chunkOverlap: 30,
-    });
-    const splitDocs = await splitter.splitDocuments(docs);
-    splitDocs.forEach((e) => {
-      console.log(e.pageContent + "//");
-    });
-
-    const store = await WeaviateStore.fromExistingIndex(embedding, {
-      client,
-      indexName: "TextIndex", // Assurez-vous que cela correspond au nom utilisé dans votre configuration
-      textKey: "text",
-      metadataKeys: ['source'], // Inclure uniquement la clé de métadonnée 'source'
-    });
-    console.log(splitDocs);
-    await store.addDocuments(splitDocs);
-
-    console.log("PDF processed and inserted successfully into Weaviate.");
-  } catch (error) {
-    console.error("Error processing and inserting PDF:", error);
-    throw error; // Gérer correctement l'erreur
-  }
-}
 
 async function insertTextToDB(text: string) {
   const client = await getClient();
@@ -152,6 +79,46 @@ async function insertTextFromURLToDB(url: string) {
   });
   console.log(splitDocs);
   await store.addDocuments(splitDocs);
+}
+
+async function processAndInsertPDFToDB(pdfPath: string) {
+  const client = await getClient();
+  try {
+    // Charger et analyser le PDF
+    const loader = new PDFLoader(pdfPath, { splitPages: false });
+    const docs = await loader.load();
+
+    // Nettoyer les documents pour n'inclure que le champ source dans les métadonnées
+    const cleanedDocs = docs.map((doc: any) => ({
+      pageContent: doc.pageContent,
+      metadata: {
+        source: doc.metadata.source,
+      },
+    }));
+
+    // Diviser les documents en morceaux
+    const splitter = new RecursiveCharacterTextSplitter({
+      chunkSize: 300,
+      chunkOverlap: 30,
+    });
+    const splitDocs = await splitter.splitDocuments(cleanedDocs);
+    splitDocs.map((e) => {
+      console.log(e.pageContent + "//");
+    });
+    const store = await WeaviateStore.fromExistingIndex(embedding, {
+      client,
+      indexName: "TextIndex", // Assurez-vous que cela correspond au nom utilisé dans votre configuration
+      textKey: "text",
+      metadataKeys: [], // Inclure uniquement la clé de métadonnée 'source'
+    });
+    console.log(splitDocs);
+    await store.addDocuments(splitDocs);
+
+    console.log("PDF processed and inserted successfully into Weaviate.");
+  } catch (error) {
+    console.error("Error processing and inserting PDF:", error);
+    throw error; // Gérer correctement l'erreur
+  }
 }
 
 async function clearDB() {
