@@ -4,7 +4,13 @@ import fs from 'fs';
 import path from 'path';
 import { tmpdir } from 'os';
 import { Express } from 'express';
+import multer from 'multer';
 
+
+
+const upload = multer({
+    limits: { fileSize: 25 * 1024 * 1024 }, // Limite de taille de fichier de 25MB
+  });
 export async function handleInsertText(req: Request, res: Response): Promise<void> {
     try {
         const text = req.body.text;
@@ -69,26 +75,34 @@ interface MulterRequest extends Request {
     file: Express.Multer.File;
 }
 
-export async function handleInsertTextFromPDF(req: Request, res: Response): Promise<void> {
-    try {
-        // Cast req to MulterRequest to access the file property
-        const multerReq = req as MulterRequest;
-
-        if (!multerReq.file) {
-            res.status(400).send('No file uploaded.');
-            return;
+export const handleInsertTextFromPDF = [
+    upload.single('file'),
+    async (req: Request, res: Response): Promise<void> => {
+      try {
+        if (!req.file) {
+          res.status(400).send('No file uploaded.');
+          return;
         }
-
-        const file = multerReq.file;
+  
+        const file = req.file;
         const tempPath = path.join(tmpdir(), file.originalname);
         fs.writeFileSync(tempPath, file.buffer);
-
+  
         await processAndInsertPDFToDB(tempPath);
         fs.unlinkSync(tempPath);
-
-        res.status(200).send('PDF processed and inserted successfully into Weaviate.');
-    } catch (error) {
-        console.error('Error processing and inserting PDF:', error);
-        res.status(500).send('Error processing the PDF.');
-    }
-}
+  
+        res.status(200).send({ result: 'PDF processed and inserted successfully into Weaviate.' });
+      } catch (error: any) {
+        if (error instanceof multer.MulterError) {
+          console.error('Multer error:', error);
+          res.status(400).send(`Multer error: ${error.message}`);
+        } else if (error.message === 'Unexpected end of form') {
+          console.error('Form error:', error);
+          res.status(400).send('Unexpected end of form. Please try again.');
+        } else {
+          console.error('Error processing and inserting PDF:', error);
+          res.status(500).send('Error processing the PDF.');
+        }
+      }
+    },
+  ];

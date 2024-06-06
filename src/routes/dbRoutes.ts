@@ -12,7 +12,7 @@ const dbRouter = express.Router();
 
 dbRouter.post('/insert', handleInsertText);
 dbRouter.post('/fromURL', handleInsertTextFromURL);
-dbRouter.post('/fromPDF', upload.single('file'), handleInsertTextFromPDF);
+dbRouter.post('/fromPDF', handleInsertTextFromPDF);
 dbRouter.post('/search', handleSearchText);
 dbRouter.delete('/clean', handleClearDB);
 
